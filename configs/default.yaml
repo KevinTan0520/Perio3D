@@ -1,0 +1,17 @@
+seed: 42
+paths:
+  dataset_root: dataset
+  processed_root: data/processed
+  reports_root: outputs/reports
+  splits_root: data/splits
+data:
+  image_extensions: [".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"]
+  ignored_name_prefixes: ["._"]
+  ignored_exact_names: [".DS_Store"]
+split:
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  seed: 42
+tracking:
+  backend: mlflow

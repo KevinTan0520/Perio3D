@@ -1,0 +1,37 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build/test artifacts
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# OS/editor metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Project data (do not sync to GitHub)
+dataset/
+data/processed/
+data/splits/
+outputs/
+
+# Literature files (do not sync)
+/文献*
+*.pdf
+
+# Runtime artifacts
+*.log
+*.tmp
