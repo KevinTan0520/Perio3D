@@ -27,7 +27,7 @@
 
 ## 4. 分阶段开发计划
 
-### 阶段 A：环境与工程初始化（第 1 周）
+### 阶段 A：环境与工程初始化（第 1 周）- 已完成
 目标：建立可复现工程框架，确保后续训练/推理可跑通。
 
 任务：
@@ -46,7 +46,13 @@
 交付：
 - `requirements.txt` + `README.md` + 最小可运行脚本。
 
-### 阶段 B：数据治理与质控（第 1-2 周）
+当前进展（2026-05-05）：
+- 已建立 `src/data/`、`src/seg/`、`src/recon/`、`src/diag/`、`src/eval/`、`configs/`、`scripts/`、`outputs/` 等工程骨架。
+- 已固定首版依赖于 `requirements.txt`，包含 PyTorch、OpenCV、numpy、pandas、scikit-learn、open3d、plotly、MLflow 等。
+- 已提供 `scripts/run_data_pipeline.ps1` 作为阶段 B 最小可运行数据流水线入口。
+- 已在 `configs/default.yaml` 中记录默认路径、清洗规则、划分比例与 MLflow 追踪后端。
+
+### 阶段 B：数据治理与质控（第 1-2 周）- 已完成
 目标：把原始数据变成可训练、可追踪的数据资产。
 
 任务：
@@ -62,6 +68,16 @@
 - `data/processed/`（清洗后数据）
 - `data/splits/*.csv`（划分清单）
 - `outputs/reports/data_quality_report.md`
+
+当前进展（2026-05-05）：
+- 已实现 `src/data/scan_dataset.py`，输出 `outputs/reports/dataset_scan.json`、`case_image_summary.csv` 与报告基础统计。
+- 已实现 `src/data/build_metadata.py`，从 `dataset/SIOP quality evaluation.xlsx` 读取 IQS 与 OE sheet，生成 `data/processed/metadata.csv`，包含病例级 IQS 评分、overall evaluation、gingival index 与质量桶。
+- 已增强 `src/data/clean_dataset.py`，过滤 Mac 元数据和非图像文件，验证图片完整性，按病例与视角生成统一命名，并输出 `data/processed/clean_manifest.csv`。
+- 已增强 `src/data/build_splits.py`，按病例级划分 train/val/test，并可根据 `gingival_index` 做分层，避免同一病例跨集合泄漏。
+- 已实现 `src/data/generate_data_report.py`，汇总扫描、清洗、metadata 与 split 结果到 `outputs/reports/data_quality_report.md`。
+- 已运行完整流水线，当前统计：总文件 1828，图像文件 1340，有效图像 1339，异常图像 1，PPT 150，Mac 元数据 331，病例 150。
+- 当前划分：train 104 例/928 张图，val 20 例/177 张图，test 26 例/234 张图；按 `gingival_index` 分层成功，跨 split 病例泄漏检查为 0。
+- 质控发现：`dataset/4/4-10/4-10-8.jpg` 触发 Pillow `DecompressionBombError`，已作为异常图像记录而非复制进 processed 数据。
 
 ### 阶段 C：牙齿/牙龈标注与分割（第 2-4 周）
 目标：获得稳定的牙齿/牙龈语义掩膜，为三维约束提供输入。
@@ -159,10 +175,10 @@
 - 标签体系不足：先做二分类风险评分，再逐步扩展分期。
 
 ## 7. 近期执行清单（下一步）
-1. 搭建 Python 工程骨架与依赖文件。
-2. 完成 `scan_dataset.py` 与 `clean_dataset.py`。
-3. 产出首版数据质量报告与 train/val/test 划分。
-4. 选取 50-100 张样本启动 SAM2.1 + X-AnyLabeling 标注闭环。
+1. 阶段 A/B 已完成，保留当前数据流水线作为后续训练与实验入口。
+2. 复核 `dataset/4/4-10/4-10-8.jpg` 是否为真实可用超大图；若需要保留，可后续加入受控降采样策略。
+3. 选取 50-100 张样本启动 SAM2.1 + X-AnyLabeling 标注闭环。
+4. 进入阶段 C：定义 tooth/gingiva 标注格式、样本抽样规则与分割推理接口。
 
 ---
 本计划为“先可跑通、再提精度”的工程路径。后续将按每个里程碑更新计划与实际进展偏差。

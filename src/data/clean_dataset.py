@@ -3,10 +3,11 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import shutil
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
+
+import shutil
 
 from PIL import Image, UnidentifiedImageError
 
@@ -20,6 +21,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest-out", type=Path, default=Path("data/processed/clean_manifest.csv"))
     parser.add_argument("--summary-out", type=Path, default=Path("outputs/reports/clean_summary.json"))
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--reset-output", action="store_true", help="Remove existing copied images before cleaning.")
     return parser.parse_args()
 
 
@@ -35,6 +37,14 @@ def parse_case_ids(dataset_root: Path, file_path: Path) -> Tuple[str, str]:
     return "unknown", "unknown"
 
 
+def infer_view_id(file_path: Path) -> str:
+    stem = file_path.stem
+    parts = stem.split("-")
+    if parts and parts[-1].isdigit():
+        return f"P-{int(parts[-1]):02d}"
+    return "unknown"
+
+
 def verify_image(path: Path) -> Tuple[bool, int, int, str]:
     try:
         with Image.open(path) as img:
@@ -42,7 +52,7 @@ def verify_image(path: Path) -> Tuple[bool, int, int, str]:
         with Image.open(path) as img:
             width, height = img.size
         return True, width, height, ""
-    except (UnidentifiedImageError, OSError, ValueError) as exc:
+    except (Image.DecompressionBombError, UnidentifiedImageError, OSError, ValueError) as exc:
         return False, 0, 0, str(exc)
 
 
@@ -64,6 +74,8 @@ def main() -> None:
 
     if not dataset_root.exists():
         raise FileNotFoundError(f"dataset root not found: {dataset_root}")
+    if args.reset_output and not args.dry_run and output_root.exists():
+        shutil.rmtree(output_root)
 
     seq_counter = defaultdict(int)
     rows: List[Dict[str, object]] = []
@@ -95,7 +107,9 @@ def main() -> None:
         seq = seq_counter[key]
 
         is_valid, width, height, error = verify_image(file_path)
-        new_name = f"{group_id}-{case_id}-{seq:03d}{ext}"
+        case_uid = case_id
+        view_id = infer_view_id(file_path)
+        new_name = f"{case_uid}_{view_id}_{seq:03d}{ext}"
         out_dir = output_root / group_id / case_id
         dst_path = out_dir / new_name
 
@@ -113,8 +127,10 @@ def main() -> None:
             {
                 "source_path": str(file_path.as_posix()),
                 "dest_path": str(dst_path.as_posix()) if status == "copied" else "",
+                "case_uid": case_uid,
                 "group_id": group_id,
                 "case_id": case_id,
+                "view_id": view_id,
                 "sequence_id": seq,
                 "new_name": new_name,
                 "width": width,
@@ -127,8 +143,10 @@ def main() -> None:
     fieldnames = [
         "source_path",
         "dest_path",
+        "case_uid",
         "group_id",
         "case_id",
+        "view_id",
         "sequence_id",
         "new_name",
         "width",

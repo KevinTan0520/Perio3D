@@ -28,25 +28,46 @@ This repository implements a Python pipeline for:
 pip install -r requirements.txt
 ```
 
-3. Run data scan:
+3. Run the full phase B data pipeline:
+
+```powershell
+.\scripts\run_data_pipeline.ps1
+```
+
+Or run each step manually:
+
+Scan the dataset:
 
 ```bash
 python -m src.data.scan_dataset --dataset-root dataset --output-dir outputs/reports
 ```
 
-4. Run data cleaning:
+Build case-level metadata from the SIOP quality workbook:
 
 ```bash
-python -m src.data.clean_dataset --dataset-root dataset --output-root data/processed/images --manifest-out data/processed/clean_manifest.csv
+python -m src.data.build_metadata --quality-workbook "dataset/SIOP quality evaluation.xlsx" --dataset-root dataset --metadata-out data/processed/metadata.csv
 ```
 
-5. Build splits:
+Clean and normalize image files:
 
 ```bash
-python -m src.data.build_splits --manifest data/processed/clean_manifest.csv --split-dir data/splits
+python -m src.data.clean_dataset --dataset-root dataset --output-root data/processed/images --manifest-out data/processed/clean_manifest.csv --reset-output
+```
+
+Build case-level train/val/test splits:
+
+```bash
+python -m src.data.build_splits --manifest data/processed/clean_manifest.csv --metadata data/processed/metadata.csv --split-dir data/splits --stratify-column gingival_index
+```
+
+Regenerate the consolidated data quality report:
+
+```bash
+python -m src.data.generate_data_report --reports-dir outputs/reports --manifest data/processed/clean_manifest.csv --metadata data/processed/metadata.csv --split-dir data/splits
 ```
 
 ## Notes
 - Mac metadata files (`._*`, `.DS_Store`) are ignored by cleaning scripts.
-- Split generation is case-level to reduce data leakage.
+- Split generation is case-level and can stratify by a metadata column such as `gingival_index`.
+- `metadata.csv` contains case-level IQS scores, overall evaluation, gingival index, and a coarse quality bucket.
 - The current implementation is the first runnable baseline and will evolve phase by phase.

@@ -39,7 +39,7 @@ def inspect_image(path: Path) -> Tuple[bool, int, int, str]:
         with Image.open(path) as img:
             width, height = img.size
         return True, width, height, ""
-    except (UnidentifiedImageError, OSError, ValueError) as exc:
+    except (Image.DecompressionBombError, UnidentifiedImageError, OSError, ValueError) as exc:
         return False, 0, 0, str(exc)
 
 
