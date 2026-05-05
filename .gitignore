@@ -29,6 +29,11 @@ data/processed/
 data/splits/
 outputs/
 
+# Local planning prompts (do not sync to GitHub)
+Goal.md
+Plan.md
+Prompt.md
+
 # Literature files (do not sync)
 /文献*
 *.pdf
