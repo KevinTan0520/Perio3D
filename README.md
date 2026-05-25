@@ -66,8 +66,23 @@ Regenerate the consolidated data quality report:
 python -m src.data.generate_data_report --reports-dir outputs/reports --manifest data/processed/clean_manifest.csv --metadata data/processed/metadata.csv --split-dir data/splits
 ```
 
+Run the phase C segmentation pipeline:
+
+```powershell
+.\scripts\run_seg_pipeline.ps1
+```
+
+For a quick smoke test:
+
+```powershell
+.\scripts\run_seg_pipeline.ps1 -MaxImages 12
+```
+
+Phase C generates an annotation queue/schema for X-AnyLabeling/SAM2.1 exports, baseline tooth/gingiva masks, a prediction manifest with confidence and coverage fields, and `outputs/seg/metrics.json`. Dice/IoU are populated when gold binary masks exist at the paths listed in `outputs/seg/annotation_queue.csv`.
+
 ## Notes
 - Mac metadata files (`._*`, `.DS_Store`) are ignored by cleaning scripts.
 - Split generation is case-level and can stratify by a metadata column such as `gingival_index`.
 - `metadata.csv` contains case-level IQS scores, overall evaluation, gingival index, and a coarse quality bucket.
 - The current implementation is the first runnable baseline and will evolve phase by phase.
+- Phase C currently uses a Pillow/NumPy color-threshold baseline as a replaceable segmentation backend; SAM2.1 or a trained lightweight model can write the same mask manifest contract.

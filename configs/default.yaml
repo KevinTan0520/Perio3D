@@ -15,3 +15,15 @@ split:
   seed: 42
 tracking:
   backend: mlflow
+segmentation:
+  classes:
+    background: 0
+    tooth: 1
+    gingiva: 2
+  annotation_queue: outputs/seg/annotation_queue.csv
+  annotation_schema: outputs/seg/annotation_schema.json
+  mask_dir: outputs/seg/masks
+  pred_manifest: outputs/seg/pred_manifest.csv
+  metrics: outputs/seg/metrics.json
+  baseline_model: pillow_numpy_color_baseline_v1
+  resize_long_edge: 1600
