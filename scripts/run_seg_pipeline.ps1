@@ -1,7 +1,8 @@
 param(
     [int]$SamplesPerSplit = 30,
     [int]$MaxImages = 0,
-    [int]$ResizeLongEdge = 1600
+    [int]$ResizeLongEdge = 1600,
+    [int]$MaxVisualizations = 30
 )
 
 $ErrorActionPreference = "Stop"
@@ -24,7 +25,10 @@ Invoke-PythonStep @("-m", "src.seg.build_annotation_queue", "--split-dir", "data
 Write-Host "[2/3] Generate baseline tooth/gingiva masks"
 Invoke-PythonStep @("-m", "src.seg.baseline_segment", "--split-dir", "data/splits", "--mask-dir", "outputs/seg/masks", "--manifest-out", "outputs/seg/pred_manifest.csv", "--summary-out", "outputs/seg/pred_summary.json", "--max-images", "$MaxImages", "--resize-long-edge", "$ResizeLongEdge")
 
-Write-Host "[3/3] Evaluate masks"
+Write-Host "[3/4] Evaluate masks"
 Invoke-PythonStep @("-m", "src.seg.evaluate_masks", "--pred-manifest", "outputs/seg/pred_manifest.csv", "--annotation-queue", "outputs/seg/annotation_queue.csv", "--metrics-out", "outputs/seg/metrics.json")
+
+Write-Host "[4/4] Create visible mask previews"
+Invoke-PythonStep @("-m", "src.seg.visualize_masks", "--pred-manifest", "outputs/seg/pred_manifest.csv", "--vis-dir", "outputs/seg/vis", "--max-images", "$MaxVisualizations")
 
 Write-Host "Segmentation pipeline completed."

@@ -78,7 +78,7 @@ For a quick smoke test:
 .\scripts\run_seg_pipeline.ps1 -MaxImages 12
 ```
 
-Phase C generates an annotation queue/schema for X-AnyLabeling/SAM2.1 exports, baseline tooth/gingiva masks, a prediction manifest with confidence and coverage fields, and `outputs/seg/metrics.json`. Dice/IoU are populated when gold binary masks exist at the paths listed in `outputs/seg/annotation_queue.csv`.
+Phase C generates an annotation queue/schema for X-AnyLabeling/SAM2.1 exports, baseline tooth/gingiva masks, visible previews under `outputs/seg/vis`, a prediction manifest with confidence and coverage fields, and `outputs/seg/metrics.json`. Dice/IoU are populated when gold binary masks exist at the paths listed in `outputs/seg/annotation_queue.csv`.
 
 ## Notes
 - Mac metadata files (`._*`, `.DS_Store`) are ignored by cleaning scripts.
@@ -86,3 +86,4 @@ Phase C generates an annotation queue/schema for X-AnyLabeling/SAM2.1 exports, b
 - `metadata.csv` contains case-level IQS scores, overall evaluation, gingival index, and a coarse quality bucket.
 - The current implementation is the first runnable baseline and will evolve phase by phase.
 - Phase C currently uses a Pillow/NumPy color-threshold baseline as a replaceable segmentation backend; SAM2.1 or a trained lightweight model can write the same mask manifest contract.
+- Files under `outputs/seg/masks` are single-channel label masks, where pixel values are 0=background, 1=tooth, and 2=gingiva. They may look black in a normal image viewer; use `outputs/seg/vis` for human-readable color masks and overlays.
